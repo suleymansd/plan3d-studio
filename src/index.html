@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan3D Stüdyo</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* tek tema: koyu çizim masası. Yerleşim: üstte proje çubuğu, solda araçlar, ortada plan, sağda seçili öğenin özellikleri */
+  --bg:#141518; --panel:#1c1d21; --panel2:#24262b; --line:#33353b; --ink:#f1eee7; --dim:#a7a299; --accent:#ffc43c; --danger:#f87171;
+  --font:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:500 14px/1.4 var(--font)}
+#app{height:100%;display:grid;grid-template-rows:auto 1fr;grid-template-columns:216px 1fr 264px}
+header{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{font-weight:700;font-size:16px;letter-spacing:.01em}.brand i{font-style:normal;color:var(--accent)}
+#pname{flex:1 1 180px;min-width:120px;max-width:320px}
+#status{flex:1 1 200px;color:var(--dim);font-size:13px;min-width:0}
+#status.bad{color:var(--danger)}
+button,.btn{font:inherit;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;white-space:nowrap}
+button:hover,.btn:hover{border-color:#5a5d66}
+button:focus-visible,.btn:focus-within,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button.primary,button.hot,button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#1b1c1e;font-weight:600}
+button.danger{color:var(--danger)}
+input[type=text],input[type=number],select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px;width:100%}
+input[type=color]{width:100%;height:34px;padding:2px;background:var(--bg);border:1px solid var(--line);border-radius:8px}
+input[type=range]{width:100%}
+#tools,#props{background:var(--panel);padding:14px 12px;overflow:auto;display:flex;flex-direction:column;gap:8px}
+#tools{border-right:1px solid var(--line)}#props{border-left:1px solid var(--line)}
+#tools button{text-align:left;width:100%}
+#tools h2,#props h2{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin:6px 0 2px}
+#tools ol{margin:4px 0 0;padding-left:18px;color:var(--dim);font-size:12.5px;display:flex;flex-direction:column;gap:3px}
+#props label{font-size:12.5px;color:var(--dim);margin-top:4px}
+#props label.chk{display:flex;gap:8px;align-items:center;color:var(--ink)}
+.muted{color:var(--dim);font-size:12.5px;margin:0}
+.dims{font-variant-numeric:tabular-nums;color:var(--dim);font-size:12.5px;margin-top:4px}
+.row2{display:flex;gap:8px}.row2 button{flex:1;text-align:center}
+main{position:relative;min-height:0;min-width:0;background:#101113}
+#ed{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#tour{position:absolute;inset:0;display:none}
+#empty{position:absolute;inset:0;display:none;align-items:center;justify-content:center;pointer-events:none}
+#empty div{pointer-events:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;max-width:380px;display:flex;flex-direction:column;gap:10px}
+#empty h2{margin:0;font-size:17px;text-wrap:balance}
+.pick{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.pick .muted{overflow:hidden;text-overflow:ellipsis;min-width:0}
+#busy{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(16,17,19,.82);padding:16px}
+#busy.on{display:flex}
+#busy>div{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;max-width:380px;display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+#busy p{margin:0}
+.spin{width:26px;height:26px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+body.preview #app{grid-template-columns:1fr}body.preview #tools,body.preview #props{display:none}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:16px}
+#modal.on{display:flex}
+#modal .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;width:min(460px,100%);max-height:80vh;display:flex;flex-direction:column;gap:12px}
+#modal h2{margin:0;font-size:17px}
+#mbody{overflow:auto;display:flex;flex-direction:column;gap:6px}
+#mbody .row{display:flex;gap:6px}#mbody .open{flex:1;display:flex;justify-content:space-between;gap:10px;text-align:left;min-width:0}
+#mbody .open b{overflow:hidden;text-overflow:ellipsis}#mbody .open span{color:var(--dim);font-size:12px;font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+@media (max-width:860px){#app{grid-template-columns:1fr;grid-template-rows:auto auto minmax(340px,1fr) auto;height:auto;min-height:100%}#tools{flex-direction:row;flex-wrap:wrap;border-right:0;border-bottom:1px solid var(--line)}#tools button{width:auto}#tools h2,#tools ol{display:none}#props{border-left:0;border-top:1px solid var(--line)}main{min-height:60vh}body.preview main{min-height:86vh}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <span class="brand">Plan<i>3D</i> Stüdyo</span>
+    <label class="sr" for="pname">Proje adı</label><input id="pname" type="text" value="Yeni proje">
+    <span id="status" role="status">Hazırlanıyor…</span>
+    <button id="bAuto" type="button">Yeni dönüşüm</button>
+    <button id="bProjects" type="button">Projeler</button>
+    <label class="btn" for="file">Planı değiştir<input id="file" class="sr" type="file" accept="image/png,image/jpeg,image/webp"></label>
+    <button id="bSave" type="button">Kaydet</button>
+    <button id="bPreview" type="button" aria-pressed="false">3D önizleme</button>
+    <button id="bExport" type="button">Müşteri dosyası indir</button>
+  </header>
+  <aside id="tools" aria-label="Araçlar">
+    <h2>Düzeltme araçları</h2>
+    <button type="button" data-tool="select">Seç / taşı</button>
+    <button type="button" data-tool="scale">Ölçek ayarla</button>
+    <button type="button" data-tool="pick">Duvarları bul</button>
+    <button type="button" data-tool="wall">Duvar çiz</button>
+    <button type="button" data-tool="door">Kapı / geçiş</button>
+    <button type="button" data-tool="window">Pencere</button>
+    <button type="button" data-tool="room">Oda</button>
+    <button type="button" data-tool="furn">Mobilya yerleştir</button>
+    <label class="sr" for="furnType">Mobilya türü</label><select id="furnType"></select>
+    <div class="row2"><button id="bUndo" type="button">Geri al</button><button id="zFit" type="button">Sığdır</button></div>
+    <h2>Akış</h2>
+    <ol><li>Yeni dönüşüm: plan ve görselleri yükle</li><li>3D önizlemede gez</li><li>Yanlış okunan yeri burada düzelt</li><li>Kaydet, müşteri dosyasını indir</li></ol>
+    <p class="muted">Tekerlek yakınlaştırır. Boş yerden sürüklemek planı kaydırır.</p>
+  </aside>
+  <main>
+    <canvas id="ed" aria-label="Plan düzenleme alanı"></canvas>
+    <div id="empty"><div><h2>Planı yükleyin, 3D'ye dönüşsün</h2><p class="muted">Kat planını ve varsa oda görsellerini seçin. Claude planı okur; odalar, duvarlar, kapılar, pencereler ve mobilyalar kendiliğinden kurulur.</p>
+<div class="pick"><label class="btn" for="aPlan">1. Kat planı seç<input id="aPlan" class="sr" type="file" accept="image/png,image/jpeg,image/webp"></label><span id="aPlanN" class="muted">Seçilmedi</span></div>
+<div class="pick"><label class="btn" for="aPhotos">2. Oda görselleri (isteğe bağlı)<input id="aPhotos" class="sr" type="file" accept="image/png,image/jpeg,image/webp" multiple></label><span id="aPhotosN" class="muted">Seçilmedi</span></div>
+<button id="aGo" class="primary" type="button">3D'ye dönüştür</button><button id="eDemo" type="button">Örnek projeyi aç</button><p class="muted">Dönüştürme Claude kullanımınızdan harcar ve ilk seferde izin ister.</p></div></div>
+    <div id="busy"><div><div class="spin" aria-hidden="true"></div><p id="busyMsg" role="status"></p><button id="busyStop" type="button">Durdur</button></div></div>
+    <div id="tour"></div>
+  </main>
+  <aside id="props" aria-label="Özellikler"></aside>
+</div>
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle"><div class="box"><h2 id="mTitle">Projeler</h2><div id="mbody"></div><div class="row2"><button id="bNew" type="button">Yeni proje</button><button id="bDemo" type="button">Örnek proje</button><button id="mClose" type="button">Kapat</button></div></div></div>
+<script type="module" src="./app.js"></script>
+</body>
+</html>

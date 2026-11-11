@@ -1,0 +1,17 @@
+{
+  "name": "plan3d-studio",
+  "version": "0.1.0",
+  "description": "2D kat planını tarayıcıda gezilebilen 3D tura çeviren stüdyo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "start": "node scripts/serve.mjs"
+  },
+  "dependencies": {
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}
